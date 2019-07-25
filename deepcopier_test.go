@@ -823,6 +823,28 @@ func TestNullableType(t *testing.T) {
 	}
 }
 
+func TestStringToNullString(t *testing.T) {
+	type A struct {
+		S string
+		F float64
+	}
+
+	type B struct {
+		S sql.NullString  `deepcopier:"force"`
+		F sql.NullFloat64 `deepcopier:"force"`
+	}
+
+	src := A{}
+	dst := B{}
+	src.S = "foo"
+	src.F = 123.45
+	assert.Nil(t, Copy(src).To(&dst))
+	assert.True(t, dst.S.Valid)
+	assert.Equal(t, dst.S.String, "foo")
+	assert.True(t, dst.F.Valid)
+	assert.Equal(t, dst.F.Float64, 123.45)
+}
+
 // ----------------------------------------------------------------------------
 // Method testers
 // ----------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 package deepcopier
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"reflect"
@@ -168,6 +169,23 @@ func process(dst interface{}, src interface{}, args ...Options) error {
 			}
 
 			continue
+		}
+
+		//
+		// value -> database/sql.Scanner and force
+		if reflect.PtrTo(dstFieldType.Type).Implements(reflect.TypeOf((*sql.Scanner)(nil)).Elem()) && force {
+			//m, err := reflect.PtrTo(dstFieldValue).MethodByName("Scan")
+			//if err != nil {
+			//	return err
+			//}
+			//reflect.PtrTo(dstFieldValue).MethodByName("Scan").Call([]reflect.Value{})
+			i := dstFieldValue.Interface()
+			var d sql.NullString = i.(sql.NullString)
+			err := d.Scan(srcFieldValue.Interface())
+			if err != nil {
+				return fmt.Errorf("Unable to assign src to scanner interface. Reason: %v", err)
+			}
+			dstFieldValue.Set(reflect.ValueOf(d))
 		}
 
 		if dstFieldValue.Kind() == reflect.Interface {
