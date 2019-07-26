@@ -179,13 +179,15 @@ func process(dst interface{}, src interface{}, args ...Options) error {
 			//	return err
 			//}
 			//reflect.PtrTo(dstFieldValue).MethodByName("Scan").Call([]reflect.Value{})
-			i := dstFieldValue.Interface()
-			var d sql.NullString = i.(sql.NullString)
-			err := d.Scan(srcFieldValue.Interface())
-			if err != nil {
-				return fmt.Errorf("Unable to assign src to scanner interface. Reason: %v", err)
+			if srcFieldValue.String() != "" {
+				i := dstFieldValue.Interface()
+				var d sql.NullString = i.(sql.NullString)
+				err := d.Scan(srcFieldValue.Interface())
+				if err != nil {
+					return fmt.Errorf("Unable to assign src to scanner interface. Reason: %v", err)
+				}
+				dstFieldValue.Set(reflect.ValueOf(d))
 			}
-			dstFieldValue.Set(reflect.ValueOf(d))
 		}
 
 		if dstFieldValue.Kind() == reflect.Interface {
